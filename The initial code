@@ -1,0 +1,150 @@
+import random
+import uuid
+from enum import Enum
+from typing import List, Optional, Tuple
+
+# Enums for shared attributes
+class Gender(Enum):
+    MALE = "male"
+    FEMALE = "female"
+
+class Color(Enum):
+    BLUE = "blue"
+    RED = "red"
+    GREEN = "green"
+    YELLOW = "yellow"
+    PURPLE = "purple"
+    ORANGE = "orange"
+    WHITE = "white"
+
+class InhumanoidType(Enum):
+    DEATH = "death"
+    TREE = "tree"
+    LAVA = "lava"
+
+class Continent(Enum):
+    MAINLAND = "mainland"
+    TOY_DEITY = "toy_deity"
+    UNDERWORLD = "underworld"
+
+# Base class for all entities
+class Entity:
+    def __init__(self, name: str, gender: Gender, continent: Continent = Continent.MAINLAND):
+        self.id = str(uuid.uuid4())
+        self.name = name
+        self.gender = gender
+        self.continent = continent
+        self.alive = True
+        self.strength = random.randint(50, 100)
+
+    def __str__(self):
+        return f"{self.__class__.__name__} {self.name} ({self.gender.value}, {self.continent.value})"
+
+# ManHeins: Inherit look from same-gender parent, color from opposite-gender parent (except Hemandango)
+class ManHein(Entity):
+    def __init__(self, name: str, gender: Gender, look: str, color: Color, is_skinned: bool = True, reverse_inheritance: bool = False):
+        super().__init__(name, gender)
+        self.look = look
+        self.color = color
+        self.is_skinned = is_skinned
+        self.reverse_inheritance = reverse_inheritance
+        self.decay = 0
+        self.is_decayed_minion = False  # For D'Compose-like transformation
+
+    def increase_decay(self):
+        if self.decay < 100:
+            self.decay += 10
+            self.strength = max(10, self.strength - 5)
+
+    @staticmethod
+    def mate(parent1: 'ManHein', parent2: 'ManHein', reverse_inheritance: bool = False) -> 'ManHein':
+        if parent1.gender == parent2.gender:
+            raise ValueError("ManHeins must have different genders to mate")
+        child_gender = random.choice([Gender.MALE, Gender.FEMALE])
+        if reverse_inheritance:
+            if child_gender == parent1.gender:
+                look = parent2.look
+                color = parent1.color
+            else:
+                look = parent1.look
+                color = parent2.color
+        else:
+            if child_gender == parent1.gender:
+                look = parent1.look
+                color = parent2.color
+            else:
+                look = parent2.look
+                color = parent1.color
+        child_name = f"Child_{parent1.name}_{parent2.name}"
+        return ManHein(child_name, child_gender, look, color, reverse_inheritance=reverse_inheritance)
+
+# Greyskullians: Bone-based magic people with repair/replacement limits
+class Greyskullian(Entity):
+    def __init__(self, name: str, gender: Gender):
+        super().__init__(name, gender)
+        self.bone_count = 206
+        self.metal_bones = 0
+        self.replacements = 0
+        self.max_replacements = 214
+        self.intelligence = 100
+
+    def repair_bone(self) -> bool:
+        if self.replacements < self.max_replacements:
+            self.replacements += 1
+            return True
+        return False
+
+    def replace_with_metal(self) -> bool:
+        if self.replacements < self.max_replacements and self.bone_count > 0:
+            self.bone_count -= 1
+            self.metal_bones += 1
+            self.replacements += 1
+            self.intelligence = max(10, self.intelligence - 0.1)
+            return True
+        return False
+
+# Thunder Cats: Hunted, evolve via Lamarckian mechanics
+class ThunderCat(Entity):
+    def __init__(self, name: str, gender: Gender):
+        super().__init__(name, gender)
+        self.bone_value = random.randint(10, 50)
+        self.complexity = 1
+        self.max_complexity = 100
+
+    def evolve(self, environment_factor: float):
+        self.complexity = min(self.max_complexity, self.complexity + environment_factor)
+
+# Smurfs: Color-based specialties, initially blue
+class Smurf(Entity):
+    def __init__(self, name: str, gender: Gender, color: Color = Color.BLUE):
+        super().__init__(name, gender, continent=Continent.UNDERWORLD)
+        self.color = color
+        self.specialty = self._get_specialty()
+
+    def _get_specialty(self) -> str:
+        specialties = {
+            Color.BLUE: "construction",
+            Color.RED: "combat",
+            Color.GREEN: "healing",
+            Color.YELLOW: "stealth",
+            Color.PURPLE: "magic",
+            Color.ORANGE: "engineering",
+            Color.WHITE: "leadership"
+        }
+        return specialties[self.color]
+
+    def change_color(self, new_color: Color):
+        self.color = new_color
+        self.specialty = self._get_specialty()
+
+# Gremlins: Transform from cute to destructive
+class Gremlin(Entity):
+    def __init__(self, name: str, gender: Gender, is_cute: bool = True):
+        super().__init__(name, gender, continent=Continent.UNDERWORLD)
+        self.is_cute = is_cute
+        self.form = "cute" if is_cute else random.choice(["warrior", "saboteur", "beast"])
+
+    def transform(self):
+        if self.is_cute:
+            self.is_cute = False
+            self.form = random.choice(["warrior", "sab
